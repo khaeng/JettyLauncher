@@ -1,0 +1,320 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.itcall.net</groupId>
+	<artifactId>JettyLauncher</artifactId>
+	<version>1.0.0</version>
+	<packaging>jar</packaging>
+	<description>
+참조하는 라이브러리 파일들을 libs폴더 내부에 저장하여 별도관리하며, 빌드 시 Jar파일에 libs폴더를 통째로 저장한다.
+Load할때 느리지만, 개발소스와 구분되어지고 관리가 편하다.
+
+The referenced library files are stored in the libs folder and managed separately, and the entire libs folder is saved in the Jar file when building.
+It is slow when loading, but it is separated from the development source and easy to manage.
+</description>
+
+	<properties>
+		<main.class.name>com.itcall.net.JettyLauncher</main.class.name>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<maven.assembly.plugin.version>2.6</maven.assembly.plugin.version>
+		<jarinjarloader.class.main>com.itcall.jarinjarloader.MakeManifest</jarinjarloader.class.main>
+		<jarinjarloader.artifactId>make-runnable-jar</jarinjarloader.artifactId>
+		<jarinjarloader.commit.tag>1.1</jarinjarloader.commit.tag>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		
+		<!-- GitHub에 존재하는 JarPacking 프로젝트를 로드하여 사용한다. -->
+		<dependency>
+			<groupId>com.github.khaeng</groupId>
+			<artifactId>${jarinjarloader.artifactId}</artifactId>
+			<version>${jarinjarloader.commit.tag}</version>
+		</dependency>
+		
+		<!-- JettyLauncher 시작. -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.eclipse.jetty</groupId> -->
+<!-- 			<artifactId>jetty-runner</artifactId> -->
+<!-- 			<version>9.2.6.v20141205</version> -->
+<!-- 		</dependency> -->
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty-runner</artifactId>
+			<version>8.1.16.v20140903</version>
+<!-- 			<exclusions> -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>org.eclipse.jetty</groupId> -->
+<!-- 					<artifactId>jetty-servlet</artifactId> -->
+<!-- 				</exclusion> -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>org.eclipse.jetty.orbit</groupId> -->
+<!-- 					<artifactId>javax.servlet</artifactId> -->
+<!-- 				</exclusion> -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>org.eclipse.jetty.orbit</groupId> -->
+<!-- 					<artifactId>javax.servlet.jsp</artifactId> -->
+<!-- 				</exclusion> -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>org.eclipse.jetty.orbit</groupId> -->
+<!-- 					<artifactId>javax.servlet.jsp.jstl</artifactId> -->
+<!-- 				</exclusion> -->
+<!-- 			</exclusions> -->
+		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty-spring</artifactId>
+			<version>8.1.16.v20140903</version>
+		</dependency>
+		<!-- JettyLauncher 끝. -->
+
+<!-- <dependency> -->
+<!--     <groupId>ch.qos.logback</groupId> -->
+<!--     <artifactId>logback-classic</artifactId> -->
+<!--     <version>1.1.3</version> -->
+<!-- </dependency> -->
+
+		<!-- servlet-api file control MultiPart or Part -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>javax.servlet</groupId> -->
+<!-- 			<artifactId>javax.servlet-api</artifactId> -->
+<!-- 			<version>3.1.0</version> -->
+<!-- 			<scope>system</scope> -->
+<!-- 			<systemPath>${user.lib.url}/javax.servlet-api-3.1-b02.jar</systemPath> -->
+<!-- 		</dependency> -->
+
+	</dependencies>
+
+<!-- 	<dependencies> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>${project.parent.groupId}</groupId> -->
+<!-- 			<artifactId>WarWebBase</artifactId> -->
+<!-- 			<version>1.0.0</version> -->
+<!-- 			<scope>system</scope> -->
+<!-- 			<systemPath>${basedir}/../WarWebBase/target/Some-WebApp.war</systemPath> -->
+<!-- 		</dependency> -->
+<!-- 	</dependencies> -->
+
+	<build>
+
+<!-- 		<finalName>jettyLauncher</finalName> -->
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<optimize>true</optimize>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/libs</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<outputDirectory>${project.build.directory}</outputDirectory>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>/libs</classpathPrefix>
+							<mainClass>${main.class.name}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<inherited>false</inherited>
+				<executions>
+					<execution>
+						<id>copy-src-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<inherited>false</inherited>
+						<configuration>
+							<!-- copy명령의 한글이 깨질경우 : Run => Run Configurations... => 외쪽에 해당 Maven Build 선택 => 오른쪽 Common 탭 선택 => Encoding => Other => ms949 선택(입력) -->
+							<workingDirectory>${project.build.directory}</workingDirectory>
+							<executable>cmd</executable>
+							<arguments>
+								<argument>/C</argument>
+								<argument>copy</argument>
+								<argument>${project.name}-${project.version}.jar</argument>
+								<argument>${project.name}-${project.version}-ALL.jar</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>make-manifest-mf</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<inherited>false</inherited>
+						<configuration>
+							<workingDirectory>${project.build.directory}</workingDirectory>
+							<executable>java</executable>
+							<arguments>
+								<argument>-classpath</argument>
+								<!-- jarinjarloader 라이브러리가 소스로 존재할때... 즉, target/classes에 class파일들로 풀어져 있을때... -->
+								<!-- <argument>classes</argument> -->
+								<!-- jarinjarloader 라이브러리가 jar로 dependency가 걸려있는 상태일 때... -->
+								<argument>libs\${jarinjarloader.artifactId}-${jarinjarloader.commit.tag}.jar</argument>
+								<argument>${jarinjarloader.class.main}</argument>
+								<argument>${main.class.name}</argument>
+								<argument>myMakeManifest.cfg</argument>
+							</arguments>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>make-work-dir</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<inherited>false</inherited>
+						<configuration>
+							<workingDirectory>${project.build.directory}</workingDirectory>
+							<executable>cmd</executable>
+							<arguments>
+								<argument>/C</argument>
+								<argument>mkdir</argument>
+								<argument>work</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>extract-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<inherited>false</inherited>
+						<configuration>
+							<workingDirectory>${project.build.directory}\work</workingDirectory>
+							<executable>jar</executable>
+							<arguments>
+								<argument>xvf</argument>
+								<argument>..\libs\${jarinjarloader.artifactId}-${jarinjarloader.commit.tag}.jar</argument>
+								<argument>com/itcall/jarinjarloader</argument>
+							</arguments>
+						</configuration>
+					</execution>
+
+
+					<!-- jar cvf0M RemoteJ-0.0.1-SNAPSHOT.bin.jar -C classes/ . libs/*.jar libs -->
+					<!-- 원본 복사후 ::: jar uvf0 RemoteJ-0.0.1-SNAPSHOT.bin.jar libs/*.jar libs -->
+					<!-- jar cvfm RemoteJ-0.0.1-SNAPSHOT-ALL2.jar RemoteJ\META-INF\MANIFEST.MF -C RemoteJ/ . -->
+					<!-- 특정메니페스트파일 지정하고, 풀어논 모든 파일을 루드로 새로.압축하기. -->
+					<execution>
+						<id>make-jar-onepack</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<workingDirectory>${project.build.directory}</workingDirectory>
+							<executable>jar</executable>
+							<arguments>
+								<argument>uvfm</argument>
+								<argument>${project.name}-${project.version}-ALL.jar</argument>
+								<argument>myMakeManifest.cfg</argument>
+								<!-- <argument>-C</argument> -->
+								<argument>libs\*.jar</argument>
+								<argument>libs</argument>
+							</arguments>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>update-jar-add-classes</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<workingDirectory>${project.build.directory}\work</workingDirectory>
+							<executable>jar</executable>
+							<arguments>
+								<argument>uvf</argument>
+								<argument>..\${project.name}-${project.version}-ALL.jar</argument>
+								<argument>.</argument>
+							</arguments>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>copy-runable-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<inherited>false</inherited>
+						<configuration>
+							<workingDirectory>${project.build.directory}</workingDirectory>
+							<executable>cmd</executable>
+							<arguments>
+								<argument>/C</argument>
+								<argument>copy</argument>
+								<argument>${project.name}-${project.version}-ALL.jar</argument>
+								<argument>..\${project.name}.jar</argument>
+							</arguments>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin> 
+
+		</plugins>
+
+	</build>
+
+	<developers>
+		<developer>
+			<id>khaeng</id>
+			<name>KUEE HAENG LEE</name>
+			<email>khaeng@nate.com</email>
+			<organization>com.itcall</organization>
+			<organizationUrl>http://www.itcall.co.kr/</organizationUrl>
+			<url>http://www.itcall.co.kr/</url>
+			<roles>
+				<role>Just Funny developer</role>
+			</roles>
+		</developer>
+	</developers>
+
+</project>
